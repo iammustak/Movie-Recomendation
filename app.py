@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request
-from movie_recommendation_engine import get_title_from_index, get_similar_movies, df
+from movie_recommendation_engine import get_similar_movies, df
 import difflib
+import urllib.parse
 
 app = Flask(__name__)
 
@@ -50,12 +51,16 @@ def home():
             all_titles = ALL_MOVIES
 
             # Fuzzy match user input to dataset title
-            close_matches = difflib.get_close_matches(movie_input, all_titles, n=1, cutoff=0.6)
+            close_matches = difflib.get_close_matches(
+                movie_input, all_titles, n=1, cutoff=0.6
+            )
 
             if not close_matches:
                 # No close match mila
                 error = f"Movie '{movie_input}' not found in database!"
-                suggestions = difflib.get_close_matches(movie_input, all_titles, n=5, cutoff=0.3)
+                suggestions = difflib.get_close_matches(
+                    movie_input, all_titles, n=5, cutoff=0.3
+                )
             else:
                 matched_movie = close_matches[0]
 
@@ -65,11 +70,22 @@ def home():
 
                     # Matched movie ka detail (top row jiska title matched ho)
                     row = df[df["title"] == matched_movie].iloc[0]
+
+                    base_title = row.get("title", "")
+                    encoded_title = urllib.parse.quote_plus(f"{base_title} movie")
+
+                    details_url = f"https://www.google.com/search?q={encoded_title}"
+                    trailer_url = (
+                        f"https://www.youtube.com/results?search_query={encoded_title}+trailer"
+                    )
+
                     selected_movie = {
-                        "title": row.get("title", ""),
+                        "title": base_title,
                         "genres": row.get("genres", ""),
                         # overview ho to dikhega, warna blank rahega
-                        "overview": row.get("overview", "")
+                        "overview": row.get("overview", ""),
+                        "details_url": details_url,
+                        "trailer_url": trailer_url,
                     }
 
                     # Now build result list for UI
@@ -78,7 +94,9 @@ def home():
                         row = df.loc[index]
 
                         # Agar user ne genre select kiya hai to filter:
-                        movie_genres = [g.strip() for g in str(row.get("genres", "")).split("|")]
+                        movie_genres = [
+                            g.strip() for g in str(row.get("genres", "")).split("|")
+                        ]
                         if selected_genre and selected_genre not in movie_genres:
                             continue
 
@@ -86,7 +104,7 @@ def home():
                             "title": row.get("title", ""),
                             "genres": row.get("genres", ""),
                             "overview": row.get("overview", ""),
-                            "similarity": round(float(score) * 100, 1)
+                            "similarity": round(float(score) * 100, 1),
                         })
 
                         if len(result) >= num_rec:
