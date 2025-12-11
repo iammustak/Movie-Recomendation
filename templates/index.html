@@ -6,10 +6,40 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, rgba(102,126,234,0.8), rgba(118,75,162,0.8)),
+                        url('https://images.pexels.com/photos/7991374/pexels-photo-7991374.jpeg') no-repeat center center fixed;
+            background-size: cover;
+            
             min-height: 100vh;
             padding: 20px;
         }
+        .button-row {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.link-btn {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: #667eea;
+    color: #fff;
+}
+
+.link-btn.secondary {
+    background: #764ba2;
+}
+.link-btn:hover {
+    opacity: 0.9;
+}
+
         .container {
             max-width: 900px;
             margin: 40px auto;
@@ -268,12 +298,21 @@
         </form>
 
         {% if selected_movie %}
-        <div class="selected-movie">
-            <h2>📌 You searched for: {{ selected_movie.title }}</h2>
-            <div class="movie-info"><strong>Genres:</strong> {{ selected_movie.genres }}</div>
-            <div class="movie-info"><strong>Overview:</strong> {{ selected_movie.overview }}</div>
-        </div>
-        {% endif %}
+<div class="selected-movie">
+    <h2>📌 You searched for: {{ selected_movie.title }}</h2>
+    <div class="movie-info"><strong>Genres:</strong> {{ selected_movie.genres }}</div>
+    <div class="movie-info"><strong>Overview:</strong> {{ selected_movie.overview }}</div>
+
+    <div class="button-row">
+        <a href="{{ selected_movie.details_url }}" target="_blank" class="link-btn">
+            🔗 View Details
+        </a>
+        <a href="{{ selected_movie.trailer_url }}" target="_blank" class="link-btn secondary">
+            🎬 Watch Trailer
+        </a>
+    </div>
+</div>
+{% endif %}
 
         {% if error %}
             <div class="error">
