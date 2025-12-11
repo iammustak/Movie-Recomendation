@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movie Recommendation System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+        }
+        .emoji { font-size: 1.2em; }
+
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 150px;
+            background: #f5f7ff;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-item strong {
+            display: block;
+            font-size: 1.4rem;
+            color: #667eea;
+        }
+        .stat-item span {
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-group input { flex: 3; }
+        .input-group select { flex: 1; }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .filters > div {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .selected-movie {
+            margin-top: 25px;
+            padding: 18px;
+            border-radius: 12px;
+            background: #f1f5ff;
+            border-left: 5px solid #764ba2;
+        }
+        .selected-movie h2 {
+            margin-bottom: 5px;
+            color: #333;
+        }
+        .selected-movie .movie-info {
+            font-size: 0.9rem;
+            color: #555;
+            margin: 3px 0;
+        }
+
+        .results {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .results h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .movie-card {
+            background: white;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .movie-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .movie-info {
+            color: #666;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .similarity {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .error {
+            background: #ff4757;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+        .error-suggestion {
+            margin-top: 10px;
+            font-size: 0.9rem;
+        }
+        .error-suggestion span {
+            background: rgba(255,255,255,0.15);
+            padding: 3px 8px;
+            border-radius: 999px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+
+        .movie-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .movie-list li {
+            padding: 3px 0;
+            color: #f1f1f1;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            margin-top: 25px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #eee;
+        }
+        .footer span {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span class="emoji">🎬</span> Movie Recommendation System</h1>
+        <p class="subtitle">
+            Type a movie name, choose how many recommendations you want, and optionally filter by genre.
+        </p>
+
+        <div class="stats-bar">
+            <div class="stat-item">
+                <strong>{{ total_movies }}</strong>
+                <span>Total Movies in Dataset</span>
+            </div>
+            <div class="stat-item">
+                <strong>{{ total_genres }}</strong>
+                <span>Unique Genres</span>
+            </div>
+            {% if matched_movie %}
+            <div class="stat-item">
+                <span style="font-size:0.8rem; color:#777;">Matched Movie</span>
+                <strong>{{ matched_movie }}</strong>
+            </div>
+            {% endif %}
+        </div>
+        
+        <form method="POST">
+            <label>Enter Movie Name:</label>
+            <div class="input-group">
+                <input type="text" name="mName"
+                       placeholder="e.g., Avatar, Titanic, Inception..."
+                       value="{{ movie_input }}"
+                       list="movies" required>
+                <select name="numRec">
+                    <option value="5"  {% if num_rec == 5  %}selected{% endif %}>5 movies</option>
+                    <option value="10" {% if num_rec == 10 %}selected{% endif %}>10 movies</option>
+                    <option value="15" {% if num_rec == 15 %}selected{% endif %}>15 movies</option>
+                </select>
+            </div>
+
+            <div class="filters">
+                <div>
+                    <label>Filter by Genre (optional):</label>
+                    <select name="genreFilter">
+                        <option value="" {% if not selected_genre %}selected{% endif %}>All genres</option>
+                        {% for g in all_genres %}
+                        <option value="{{ g }}" {% if selected_genre == g %}selected{% endif %}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <datalist id="movies">
+                {% for movie in all_movies %}
+                <option value="{{ movie }}">
+                {% endfor %}
+            </datalist>
+            
+            <button type="submit">🔍 Get Recommendations</button>
+        </form>
+
+        {% if selected_movie %}
+        <div class="selected-movie">
+            <h2>📌 You searched for: {{ selected_movie.title }}</h2>
+            <div class="movie-info"><strong>Genres:</strong> {{ selected_movie.genres }}</div>
+            <div class="movie-info"><strong>Overview:</strong> {{ selected_movie.overview }}</div>
+        </div>
+        {% endif %}
+
+        {% if error %}
+            <div class="error">
+                <strong>❌ {{ error }}</strong>
+                {% if suggestions %}
+                    <div class="error-suggestion">
+                        <p>Did you mean:</p>
+                        {% for s in suggestions %}
+                            <span>{{ s }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <div class="movie-list">
+                    <p><strong>Available movies:</strong></p>
+                    <ul>
+                    {% for movie in all_movies %}
+                        <li>{{ movie }}</li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if result %}
+            <div class="results">
+                <h2>🎯 Recommended Movies (Based on: {{ matched_movie }})</h2>
+                {% if selected_genre %}
+                    <p style="margin-bottom:10px; font-size:0.9rem; color:#555;">
+                        Showing movies with genre: <strong>{{ selected_genre }}</strong>
+                    </p>
+                {% endif %}
+                {% for movie in result %}
+                    <div class="movie-card">
+                        <h3>{{ loop.index }}. {{ movie.title }}</h3>
+                        <div class="movie-info">🎭 <strong>Genres:</strong> {{ movie.genres }}</div>
+                        <div class="movie-info">📝 {{ movie.overview }}</div>
+                        <span class="similarity">📊 {{ movie.similarity }}% Match</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+    <div class="footer">
+        <span>Simple content-based recommender using TF-IDF + cosine similarity (Flask, single file).</span>
+    </div>
+</body>
+</html>
+'''
